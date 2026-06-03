@@ -1,0 +1,138 @@
+name: QA Pipeline – Cypress
+
+run-name: >
+  ${{ github.event_name == 'push'
+      && ' '
+      || (github.event.inputs.branch_name
+          && format('QA from DEV | {0}', github.event.inputs.branch_name)
+          || 'QA from Manual') }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: "Nome da Branch"
+        required: false
+      project_dev:
+        description: "Nome do projeto que acionou a Pipeline"
+        required: false
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: qa-pipeline
+  cancel-in-progress: false
+
+jobs:
+  cypress-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Usar variáveis
+        run: |
+          echo "BRANCH_NAME=${{ github.event.inputs.branch_name }}" >> $GITHUB_ENV
+          echo "PROJECT_DEV=${{ github.event.inputs.project_dev }}" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Set timezone to São Paulo
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tzdata
+          sudo ln -snf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+          echo "America/Sao_Paulo" | sudo tee /etc/timezone
+          date
+        env:
+          TZ: America/Sao_Paulo
+
+      # 🔄 Garante que o Node também use TZ=America/Sao_Paulo
+      - name: Export TZ for Node/Cypress
+        run: echo "TZ=America/Sao_Paulo" >> $GITHUB_ENV
+      - name: Run Cypress tests
+        env:
+          # ===== URLs =====
+          URL_LOGIN: ${{ secrets.URL_LOGIN }}
+          URL_APP: ${{ secrets.URL_APP }}
+          URL_API: ${{ secrets.URL_API }}
+
+          # ===== LOGIN =====
+          LOGIN: ${{ secrets.LOGIN }}
+          SENHA: ${{ secrets.SENHA }}
+
+          # ===== ORGANIZAÇÃO / FILIAIS =====
+          PRINCIPAL_BRANCH: ${{ secrets.PRINCIPAL_BRANCH }}
+          SECOND_BRANCH: ${{ secrets.SECOND_BRANCH }}
+          ORGANIZATION: ${{ secrets.ORGANIZATION }}
+          ORGANIZATION_HIERARCHY_CODE: ${{ secrets.ORGANIZATION_HIERARCHY_CODE }}
+          ORGANIZATION_HIERARCHY_CODE_DESTINATION: ${{ secrets.ORGANIZATION_HIERARCHY_CODE_DESTINATION }}
+
+          # ===== USUÁRIO =====
+          NAME: ${{ secrets.NAME }}
+          ID_USER: ${{ secrets.ID_USER }}
+          INSTANCE_ID: ${{ secrets.INSTANCE_ID }}
+          EMPLOY: ${{ secrets.EMPLOY }}
+          GUIDE: ${{ secrets.GUIDE }}
+
+          # ===== MAQUINA / IDS DA FILIAL =====
+          MACHINE_CARD_NAME: ${{ secrets.MACHINE_CARD_NAME }}
+          DOCUMENT_TYPE_ID: ${{ secrets.DOCUMENT_TYPE_ID }}
+          WALLET_TITLE_ID: ${{ secrets.WALLET_TITLE_ID }}
+          PLAN_LEAF_ID: ${{ secrets.PLAN_LEAF_ID }}
+
+          # ===== CLIENTE =====
+          CLIENT_NAME_COMPLETE: ${{ secrets.CLIENT_NAME_COMPLETE }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_INDIVIDUAL_ID: ${{ secrets.CLIENT_INDIVIDUAL_ID }}
+          CLIENT_INTEGRATION_ID: ${{ secrets.CLIENT_INTEGRATION_ID }}
+          CLIENT_DOCUMENT: ${{ secrets.CLIENT_DOCUMENT }}
+          CLIENT: ${{ secrets.CLIENT }}
+          CLIENT_OUT_OF_STATE: ${{ secrets.CLIENT_OUT_OF_STATE }}
+          CLIENT_LINK_EMPLOY: ${{ secrets.CLIENT_LINK_EMPLOY }}
+          CLIENT_LINK_EMPLOY_INACTIVE: ${{ secrets.CLIENT_LINK_EMPLOY_INACTIVE }}
+          CLIENT_PERSON_AUTHORIZED: ${{ secrets.CLIENT_PERSON_AUTHORIZED }}
+
+          # ===== FORNECEDOR =====
+          PROVIDER: ${{ secrets.PROVIDER }}
+          PROVIDER_DOCUMENT: ${{ secrets.PROVIDER_DOCUMENT }}
+
+          # ===== PRODUTOS =====
+          PRODUCTS: ${{ secrets.PRODUCTS }} # JSON string
+          PRODUCT_SHARED: ${{ secrets.PRODUCT_SHARED }}
+          PRODUCT_NOT_SHARED: ${{ secrets.PRODUCT_NOT_SHARED }}
+          CATALOGY: ${{ secrets.CATALOGY }}
+
+          # ===== EVENDI =====
+          EVENDI_DOMAIN: ${{ secrets.EVENDI_DOMAIN }}
+          EVENDI_SITE: ${{ secrets.EVENDI_SITE }}
+
+          # ===== PERMISSÕES =====
+          OPERATIONS: ${{ secrets.OPERATIONS }} # JSON string
+
+        run: npm run cy:runqase
+
+      - name: Upload Cypress screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          retention-days: 3
+
+      - name: Upload Cypress videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress/videos
+          retention-days: 3

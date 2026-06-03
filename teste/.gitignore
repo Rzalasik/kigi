@@ -1,0 +1,11 @@
+# Dependency directories
+node_modules/
+
+cypress.env.json
+cypress/videos
+cypress/screenshots
+cypress/downloads
+!cypress/fixtures/nota.xml-example
+!cypress/fixtures/nota-cadastro-fornecedor.xml-example
+!cypress/fixtures/body.js
+cypress.env.json-prod

@@ -1,0 +1,42 @@
+{
+  "name": "testes-crypress",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "cy:open": "cypress open",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cy:run": "cypress run --browser chrome --reporter spec",
+    "cy:runqase": "./run-tests-qase.sh",
+    "cy:runEstoque": "npx cypress run --browser chrome --spec cypress/e2e/Testes-Estoque.cy.js",
+    "cy:runCadastro": "npx cypress run --browser chrome --spec cypress/e2e/Testes-Cadastro.cy.js",
+    "cy:runCaixa": "npx cypress run --browser chrome --spec cypress/e2e/Testes-Caixa.cy.js",
+    "cy:runComercial": "npx cypress run --browser chrome --spec cypress/e2e/Testes-Comercial.cy.js",
+    "cy:runFiscal": "QASE_MODE=testops npx cypress run --browser chrome --spec cypress/e2e/Testes-Fiscal.cy.js",
+    "cy:runLogin": "npx cypress run --browser chrome --spec cypress/e2e/Testes-Login.cy.js",
+    "cy:runCloud": "npx cypress run --browser chrome --record --key 63b5dc17-3ec2-4f8b-9677-7a77adae0a93"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EduardoTampelini/Crypress-Grupo-Irrah.git"
+  },
+  "bugs": {
+    "url": "https://github.com/EduardoTampelini/Crypress-Grupo-Irrah/issues"
+  },
+  "homepage": "https://github.com/EduardoTampelini/Crypress-Grupo-Irrah#readme",
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@percy/cli": "^1.31.0",
+    "@percy/cypress": "^3.1.6",
+    "cypress": "^13.6.6",
+    "cypress-iframe": "^1.0.1",
+    "cypress-multi-reporters": "^2.0.5",
+    "cypress-plugin-api": "^2.11.2",
+    "cypress-qase-reporter": "^3.1.2",
+    "cypress-visual-regression": "^5.3.0",
+    "resemblejs": "^5.0.0"
+  }
+}
